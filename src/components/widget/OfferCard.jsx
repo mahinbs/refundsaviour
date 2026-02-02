@@ -43,14 +43,14 @@ export function OfferCard({ offer, onSelect }) {
                     {offer.description}
                 </p>
 
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 pt-3 border-t border-white/5 gap-3">
                     <span className="font-bold text-xl text-white tracking-widest font-mono">
                         ${offer.value.toFixed(2)}
                     </span>
                     <Button
                         variant={isRecommended ? "default" : "outline"}
                         size="sm"
-                        className="gap-2 rounded-full px-5 transition-transform group-hover:scale-105"
+                        className="gap-2 rounded-full px-5 transition-transform group-hover:scale-105 w-full sm:w-auto"
                     >
                         Select <ArrowRight className="h-3 w-3" />
                     </Button>

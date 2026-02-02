@@ -29,7 +29,7 @@ export function ChatBubble({ message, sender, animate = true }) {
 
             <div
                 className={cn(
-                    "max-w-[85%] rounded-2xl px-5 py-4 text-sm shadow-md backdrop-blur-md relative overflow-hidden",
+                    "max-w-[85%] rounded-2xl px-4 py-3 md:px-5 md:py-4 text-sm shadow-md backdrop-blur-md relative overflow-hidden",
                     isAI
                         ? "bg-black/40 text-white border border-primary/20 rounded-bl-none"
                         : "bg-primary/20 text-white border border-primary/40 rounded-br-none shadow-[0_0_15px_rgba(6,182,212,0.1)]"

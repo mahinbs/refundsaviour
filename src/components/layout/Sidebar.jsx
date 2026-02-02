@@ -1,10 +1,12 @@
 import React from "react";
 import { cn } from "../../lib/utils";
-import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, BarChart3, Settings, LogOut, Hexagon } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, BarChart3, Settings, LogOut, Hexagon, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 
-export function Sidebar() {
+export function Sidebar({ className, onNavigate }) {
     const location = useLocation();
+    const navigate = useNavigate();
 
     const navItems = [
         { label: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -12,8 +14,20 @@ export function Sidebar() {
         { label: "Settings", href: "/settings", icon: Settings },
     ];
 
+    const handleLogout = () => {
+        toast.info("Logging out...", {
+            description: "Securely terminating session."
+        });
+
+        // Simulate a small delay for effect
+        setTimeout(() => {
+            navigate("/login");
+            if (onNavigate) onNavigate(); // Close mobile menu if open
+        }, 1000);
+    };
+
     return (
-        <div className="flex h-screen w-64 flex-col border-r border-white/5 bg-black/20 backdrop-blur-xl">
+        <div className={cn("flex h-screen w-64 flex-col border-r border-white/5 bg-black/20 backdrop-blur-xl", className)}>
             <div className="flex h-20 items-center px-6 border-b border-white/5">
                 <div className="flex items-center gap-3 font-bold text-xl tracking-wide text-white">
                     <div className="relative flex h-10 w-10 items-center justify-center">
@@ -32,6 +46,7 @@ export function Sidebar() {
                         <Link
                             key={item.href}
                             to={item.href}
+                            onClick={onNavigate}
                             className={cn(
                                 "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-300",
                                 isActive
@@ -49,7 +64,7 @@ export function Sidebar() {
                 })}
             </nav>
 
-            <div className="p-4">
+            <div className="p-4 space-y-4">
                 <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-4">
                     <h4 className="mb-2 text-sm font-semibold text-white">Pro Plan</h4>
                     <div className="mb-4 h-1.5 w-full rounded-full bg-white/10">
@@ -60,10 +75,18 @@ export function Sidebar() {
                         target="_blank"
                         className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-white/10 hover:border-primary/50"
                     >
-                        <LogOut className="h-3 w-3" />
+                        <ExternalLink className="h-3 w-3" />
                         Launch Widget Demo
                     </Link>
                 </div>
+
+                <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive transition-all duration-300 hover:bg-destructive/10 hover:text-destructive-foreground group"
+                >
+                    <LogOut className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
+                    Logout
+                </button>
             </div>
         </div>
     );

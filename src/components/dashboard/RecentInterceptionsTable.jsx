@@ -10,7 +10,7 @@ export function RecentInterceptionsTable() {
                 <CardTitle>Live Activity Feed</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-                <div className="relative w-full overflow-auto">
+                <div className="relative w-full overflow-x-auto">
                     <table className="w-full caption-bottom text-sm text-left">
                         <thead className="[&_tr]:border-b [&_tr]:border-white/5 bg-white/5">
                             <tr>

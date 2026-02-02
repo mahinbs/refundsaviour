@@ -2,15 +2,27 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
 import { REFUND_REASONS } from "../data/mockData";
 import { BrainCircuit, Activity } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { toast } from "sonner";
 
 export default function Analytics() {
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-lg bg-secondary/10 border border-secondary/30">
-                    <Activity className="h-6 w-6 text-secondary" />
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-secondary/10 border border-secondary/30">
+                        <Activity className="h-6 w-6 text-secondary" />
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-tight text-white">Return Pattern Analysis</h2>
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight text-white">Return Pattern Analysis</h2>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toast.success("Analytics data refreshed")}
+                    className="hidden md:flex"
+                >
+                    Refresh Data
+                </Button>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
@@ -22,9 +34,9 @@ export default function Analytics() {
                     <CardContent className="space-y-6">
                         {REFUND_REASONS.map((item) => (
                             <div key={item.reason} className="space-y-2 group">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="font-medium text-slate-300 group-hover:text-primary transition-colors">{item.reason}</span>
-                                    <span className="text-muted-foreground">{item.count} Returns ({item.percentage}%)</span>
+                                <div className="flex items-center justify-between text-sm gap-4">
+                                    <span className="font-medium text-slate-300 group-hover:text-primary transition-colors truncate">{item.reason}</span>
+                                    <span className="text-muted-foreground whitespace-nowrap text-xs md:text-sm">{item.count} Returns ({item.percentage}%)</span>
                                 </div>
                                 <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
                                     <div

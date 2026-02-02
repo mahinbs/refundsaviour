@@ -26,13 +26,13 @@ export default function WidgetDemo() {
                 </div>
 
                 <div className="space-y-2">
-                    <h1 className="text-4xl font-bold text-white tracking-tight">Interception Protocol</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Interception Protocol</h1>
                     <p className="text-muted-foreground">
                         Simulate a customer return attempt to trigger the AI retention sequence.
                     </p>
                 </div>
 
-                <div className="p-8 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-transform hover:scale-105 duration-300">
+                <div className="p-4 md:p-8 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl transition-transform hover:scale-105 duration-300">
                     <div className="flex justify-between items-center mb-6">
                         <div className="text-left">
                             <p className="font-bold text-white text-lg">Order #ORD-7829</p>

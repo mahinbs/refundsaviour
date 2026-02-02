@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Badge } from "../components/ui/Badge";
-import { Cog, Database, Zap } from "lucide-react";
+import { Cog, Database, Zap, Save, Lock } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Settings() {
+    const [isEditing, setIsEditing] = useState(false);
+    const [storeName, setStoreName] = useState("RefundSavior Demo Store");
+
+    const handleSave = () => {
+        if (isEditing) {
+            toast.success("System parameters updated successfully");
+        }
+        setIsEditing(!isEditing);
+    };
+
     return (
         <div className="space-y-8 max-w-4xl">
             <div className="flex items-center gap-3">
@@ -23,7 +34,12 @@ export default function Settings() {
                 <CardContent className="space-y-6">
                     <div className="grid gap-3">
                         <label className="text-sm font-medium text-slate-300">Store Identity</label>
-                        <Input defaultValue="RefundSavior Demo Store" disabled className="bg-black/40 border-primary/20 text-primary font-mono" />
+                        <Input
+                            value={storeName}
+                            onChange={(e) => setStoreName(e.target.value)}
+                            disabled={!isEditing}
+                            className={`bg-black/40 border-primary/20 text-primary font-mono ${!isEditing && "opacity-70 cursor-not-allowed"}`}
+                        />
                     </div>
                     <div className="grid gap-3">
                         <label className="text-sm font-medium text-slate-300">Platform Integration</label>
@@ -62,11 +78,11 @@ export default function Settings() {
                             <Database className="h-4 w-4 text-secondary" /> Offer Strategy Variables
                         </h4>
                         <div className="grid gap-3">
-                            <div className="flex items-center justify-between text-sm p-3 rounded-lg bg-white/5 border border-white/5 hover:border-secondary/50 transition-colors">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm p-3 rounded-lg bg-white/5 border border-white/5 hover:border-secondary/50 transition-colors gap-2">
                                 <span className="text-slate-300">Store Credit Multiplier</span>
                                 <span className="font-mono text-secondary font-bold">1.10x</span>
                             </div>
-                            <div className="flex items-center justify-between text-sm p-3 rounded-lg bg-white/5 border border-white/5 hover:border-secondary/50 transition-colors">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm p-3 rounded-lg bg-white/5 border border-white/5 hover:border-secondary/50 transition-colors gap-2">
                                 <span className="text-slate-300">Exchange Incentive</span>
                                 <span className="font-mono text-secondary font-bold">SHIPPING_WAIVER</span>
                             </div>
@@ -74,8 +90,20 @@ export default function Settings() {
                     </div>
 
                     <div className="flex justify-end pt-2">
-                        <Button variant="outline" disabled className="opacity-50">
-                            Modify Parameters (Admin Lock)
+                        <Button
+                            variant={isEditing ? "default" : "outline"}
+                            onClick={handleSave}
+                            className={isEditing ? "bg-primary text-black hover:bg-primary/90" : ""}
+                        >
+                            {isEditing ? (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" /> Save Changes
+                                </>
+                            ) : (
+                                <>
+                                    <Lock className="mr-2 h-4 w-4" /> Modify Parameters (Admin Lock)
+                                </>
+                            )}
                         </Button>
                     </div>
                 </CardContent>

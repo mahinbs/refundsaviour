@@ -21,7 +21,7 @@ export function KPICard({ title, value, icon: Icon, trend, trendValue, color = "
             <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none", getGradientBorder())}></div>
 
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-sm font-medium text-muted-foreground truncate pr-2">
                     {title}
                 </CardTitle>
                 {Icon && <Icon className={cn("h-4 w-4 transition-colors", color === "success" ? "text-green-500" : color === "destructive" ? "text-red-500" : "text-primary")} />}

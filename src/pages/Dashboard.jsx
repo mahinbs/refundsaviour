@@ -2,7 +2,9 @@ import React from "react";
 import { KPICard } from "../components/dashboard/KPICard";
 import { RecentInterceptionsTable } from "../components/dashboard/RecentInterceptionsTable";
 import { KPI_DATA } from "../data/mockData";
-import { DollarSign, ShieldCheck, UserX, TrendingUp, Sparkles } from "lucide-react";
+import { DollarSign, ShieldCheck, UserX, TrendingUp, Sparkles, RefreshCcw } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { toast } from "sonner";
 
 export default function Dashboard() {
     return (
@@ -14,8 +16,17 @@ export default function Dashboard() {
                         <h2 className="text-3xl font-bold text-white mb-2">Command Center Active</h2>
                         <p className="text-muted-foreground">System functioning at optimal efficiency. Revenue retention protocols engaged.</p>
                     </div>
-                    <div className="hidden md:flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 shadow-neon-blue animate-pulse-slow">
-                        <Sparkles className="h-6 w-6 text-primary" />
+                    <div className="flex gap-4 items-center">
+                        <Button
+                            variant="default"
+                            className="hidden md:flex gap-2 shadow-neon-blue"
+                            onClick={() => toast.success("Dashboard metrics updated")}
+                        >
+                            <RefreshCcw className="h-4 w-4" /> Live Update
+                        </Button>
+                        <div className="hidden md:flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 shadow-neon-blue animate-pulse-slow">
+                            <Sparkles className="h-6 w-6 text-primary" />
+                        </div>
                     </div>
                 </div>
                 <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-primary/10 to-transparent skew-x-12"></div>

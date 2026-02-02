@@ -83,7 +83,7 @@ export function RetainWidget({ isOpen, onClose }) {
             isOpen={isOpen}
             onClose={reset}
             title="Resolution Center"
-            className="h-[650px] flex flex-col overflow-y-auto border-primary/20 bg-black/80 backdrop-blur-2xl shadow-[0_0_50px_rgba(6,182,212,0.15)]"
+            className="h-[650px] max-h-[90vh] flex flex-col overflow-y-auto border-primary/20 bg-black/80 backdrop-blur-2xl shadow-[0_0_50px_rgba(6,182,212,0.15)]"
         >
             <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-primary/20">
                 {history.map((msg) => (
@@ -92,7 +92,7 @@ export function RetainWidget({ isOpen, onClose }) {
 
                 {/* Stage: Reason Selection */}
                 {stage === "chat-reason" && (
-                    <div className="grid grid-cols-1 gap-3 pl-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="grid grid-cols-1 gap-3 pl-4 md:pl-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
                         {WIDGET_CONFIG.questions[0].options.map((opt) => (
                             <Button
                                 key={opt}

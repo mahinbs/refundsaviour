@@ -5,6 +5,7 @@ import Dashboard from "../pages/Dashboard";
 import Analytics from "../pages/Analytics";
 import Settings from "../pages/Settings";
 import WidgetDemo from "../pages/WidgetDemo";
+import Login from "../pages/Login";
 
 export default function AppRoutes() {
     return (
@@ -16,8 +17,9 @@ export default function AppRoutes() {
                 <Route path="settings" element={<Settings />} />
             </Route>
 
-            {/* Standalone Widget Demo Route */}
+            {/* Standalone Routes */}
             <Route path="/widget-demo" element={<WidgetDemo />} />
+            <Route path="/login" element={<Login />} />
         </Routes>
     );
 }
