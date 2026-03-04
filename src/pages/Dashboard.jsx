@@ -1,12 +1,14 @@
 import React from "react";
 import { KPICard } from "../components/dashboard/KPICard";
 import { RecentInterceptionsTable } from "../components/dashboard/RecentInterceptionsTable";
-import { KPI_DATA } from "../data/mockData";
 import { DollarSign, ShieldCheck, UserX, TrendingUp, Sparkles, RefreshCcw } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { toast } from "sonner";
 
-export default function Dashboard() {
+export default function Dashboard({ data }) {
+    const kpis = data?.kpis || [];
+    const recentActivity = data?.recentActivity || [];
+    
     return (
         <div className="space-y-8">
             {/* Welcome Banner */}
@@ -34,41 +36,30 @@ export default function Dashboard() {
 
             {/* KPI Section */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <KPICard
-                    title="Revenue Retained"
-                    value={`$${KPI_DATA.revenueRetained.toLocaleString()}`}
-                    icon={DollarSign}
-                    trend="up"
-                    trendValue="12%"
-                    color="success"
-                />
-                <KPICard
-                    title="Total Interceptions"
-                    value={KPI_DATA.totalInterceptions.toLocaleString()}
-                    icon={ShieldCheck}
-                    trend="up"
-                    trendValue="8%"
-                />
-                <KPICard
-                    title="Conversion Rate"
-                    value={`${KPI_DATA.conversionRate}%`}
-                    icon={TrendingUp}
-                    trend="up"
-                    trendValue="2.1%"
-                />
-                <KPICard
-                    title="Refunds Lost"
-                    value={`$${KPI_DATA.refundsLost.toLocaleString()}`}
-                    icon={UserX}
-                    trend="down"
-                    trendValue="4%"
-                    color="destructive"
-                />
+                {kpis.map((kpi, index) => {
+                    const iconMap = {
+                        "Refunds Intercepted": ShieldCheck,
+                        "Retention Rate": TrendingUp,
+                        "Revenue Saved": DollarSign,
+                        "Active Offers": UserX,
+                    };
+                    return (
+                        <KPICard
+                            key={index}
+                            title={kpi.title}
+                            value={kpi.value}
+                            icon={iconMap[kpi.title] || ShieldCheck}
+                            trend={kpi.trend}
+                            trendValue={kpi.change}
+                            color={kpi.title.includes("Revenue") ? "success" : "default"}
+                        />
+                    );
+                })}
             </div>
 
             {/* Main Content */}
             <div className="grid gap-6 md:grid-cols-1">
-                <RecentInterceptionsTable />
+                <RecentInterceptionsTable data={recentActivity} />
             </div>
         </div>
     );

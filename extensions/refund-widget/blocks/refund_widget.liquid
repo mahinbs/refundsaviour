@@ -1,0 +1,472 @@
+{% comment %}
+  RefundSavior - Refund Interception Widget
+  This block intercepts refund/return requests and launches the AI retention flow
+{% endcomment %}
+
+<div 
+  id="refund-saviour-widget" 
+  class="refund-saviour-widget"
+  data-shop="{{ shop.permanent_domain }}"
+  data-customer-id="{{ customer.id }}"
+  data-customer-email="{{ customer.email }}"
+  data-widget-title="{{ block.settings.widget_title }}"
+  data-auto-trigger="{{ block.settings.auto_trigger }}"
+  data-primary-color="{{ block.settings.primary_color }}"
+  data-app-url="{{ block.settings.app_server_url }}"
+  style="display: none;"
+>
+  <div class="refund-saviour-backdrop"></div>
+  <div class="refund-saviour-modal">
+    <div class="refund-saviour-content" id="refund-saviour-content">
+      <button class="refund-saviour-close" onclick="RefundSaviour.close()">×</button>
+      <div class="refund-saviour-loading">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .refund-saviour-widget {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+  }
+
+  .refund-saviour-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .refund-saviour-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+  }
+
+  .refund-saviour-content {
+    padding: 24px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .refund-saviour-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  .refund-saviour-close:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .refund-saviour-loading {
+    text-align: center;
+    padding: 40px;
+  }
+
+  .spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid {{ block.settings.primary_color }};
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .refund-saviour-chat {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .refund-saviour-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    max-width: 80%;
+  }
+
+  .refund-saviour-message.user {
+    background: {{ block.settings.primary_color }};
+    color: white;
+    align-self: flex-end;
+    margin-left: auto;
+  }
+
+  .refund-saviour-message.assistant {
+    background: #f0f0f0;
+    color: #333;
+    align-self: flex-start;
+  }
+
+  .refund-saviour-offers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .refund-saviour-offer {
+    padding: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .refund-saviour-offer:hover {
+    border-color: {{ block.settings.primary_color }};
+    background: rgba(99, 102, 241, 0.05);
+  }
+
+  .refund-saviour-input {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .refund-saviour-input input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+  }
+
+  .refund-saviour-input button {
+    padding: 12px 24px;
+    background: {{ block.settings.primary_color }};
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .refund-saviour-escape {
+    text-align: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .refund-saviour-escape button {
+    background: transparent;
+    border: 1px solid #e0e0e0;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #666;
+  }
+</style>
+
+<script>
+  // APP_URL is injected by the backend into a Shopify metafield during onboarding.
+  // Fallback: read from the data attribute set in the widget div.
+  const _appUrl = document.getElementById('refund-saviour-widget')?.dataset?.appUrl || '';
+
+  window.RefundSaviour = {
+    config: {
+      apiUrl: _appUrl,
+      shopDomain: '{{ shop.permanent_domain }}',
+      customerId: '{{ customer.id }}',
+      customerEmail: '{{ customer.email }}',
+      primaryColor: '{{ block.settings.primary_color }}',
+    },
+    interceptionId: null,
+    messages: [],
+
+    init() {
+      console.log('[RefundSaviour] Initializing widget');
+      
+      // Intercept return/refund buttons
+      if ('{{ block.settings.auto_trigger }}' === 'true') {
+        this.interceptReturnButtons();
+      }
+    },
+
+    interceptReturnButtons() {
+      // querySelectorAll does not support :contains() — use manual text search
+      const candidates = document.querySelectorAll('button, a');
+      const returnButtons = Array.from(candidates).filter(el => {
+        const text = el.textContent?.trim().toLowerCase() || '';
+        const href = el.getAttribute('href') || '';
+        const name = el.getAttribute('name') || '';
+        return (
+          name === 'return' ||
+          href.includes('return') ||
+          text === 'return' ||
+          text === 'refund' ||
+          text === 'request return' ||
+          text === 'request a return' ||
+          text === 'start return'
+        );
+      });
+
+      returnButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const orderElement = button.closest('[data-order-id]') || button.closest('.order') || button.closest('li') || button.closest('tr');
+          this.open(orderElement);
+        });
+      });
+    },
+
+    async open(orderElement) {
+      const widget = document.getElementById('refund-saviour-widget');
+      widget.style.display = 'block';
+
+      // Extract order information
+      const orderId = orderElement?.dataset?.orderId || 'unknown';
+      const orderData = this.extractOrderData(orderElement);
+
+      // Start AI conversation
+      await this.startConversation(orderId, orderData);
+    },
+
+    close() {
+      const widget = document.getElementById('refund-saviour-widget');
+      widget.style.display = 'none';
+      this.messages = [];
+      this.interceptionId = null;
+    },
+
+    extractOrderData(orderElement) {
+      // Extract product and price information from DOM
+      // This will vary based on theme structure
+      return {
+        productName: orderElement?.querySelector('.product-name')?.textContent || 'Product',
+        itemPrice: orderElement?.querySelector('.price')?.textContent?.replace(/[^0-9.]/g, '') || '0',
+        orderId: orderElement?.dataset?.orderId || 'unknown',
+      };
+    },
+
+    async startConversation(orderId, orderData) {
+      try {
+        const response = await fetch(`${this.config.apiUrl}/negotiate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shopDomain: this.config.shopDomain,
+            orderId: orderId,
+            customerId: this.config.customerId,
+            customerEmail: this.config.customerEmail,
+            returnReason: 'changed_mind', // Default, can be enhanced with a reason selector
+            productId: orderData.productId || 'unknown',
+            productName: orderData.productName,
+            itemPrice: orderData.itemPrice,
+            messages: [],
+          }),
+        });
+
+        const data = await response.json();
+        this.interceptionId = data.interceptionId;
+        this.renderConversation(data);
+      } catch (error) {
+        console.error('[RefundSaviour] Error starting conversation:', error);
+        this.renderError();
+      }
+    },
+
+    renderConversation(data) {
+      const content = document.getElementById('refund-saviour-content');
+      content.innerHTML = `
+        <h2 style="margin-bottom: 16px;">{{ block.settings.widget_title }}</h2>
+        <div class="refund-saviour-chat">
+          <div class="refund-saviour-message assistant">
+            ${data.response}
+          </div>
+        </div>
+        ${this.renderOffers(data.offers)}
+        ${this.renderEscapeHatch()}
+      `;
+    },
+
+    renderOffers(offers) {
+      if (!offers || offers.length === 0) return '';
+      
+      return `
+        <div class="refund-saviour-offers">
+          ${offers.map(offer => `
+            <div class="refund-saviour-offer" onclick="RefundSaviour.acceptOffer('${offer.type}', ${offer.value})">
+              <strong>${offer.title}</strong>
+              <p style="margin: 4px 0; color: #666; font-size: 14px;">${offer.description}</p>
+              <p style="margin: 4px 0; font-weight: 600; color: ${this.config.primaryColor};">$${offer.value}</p>
+              ${offer.badge ? `<span style="font-size: 12px; color: #999;">${offer.badge}</span>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      `;
+    },
+
+    renderEscapeHatch() {
+      return `
+        <div class="refund-saviour-escape">
+          <p style="font-size: 14px; color: #666; margin-bottom: 8px;">
+            Not interested in these options?
+          </p>
+          <button onclick="RefundSaviour.acceptOffer('refund', 0)">
+            Just give me my refund
+          </button>
+        </div>
+      `;
+    },
+
+    async acceptOffer(offerType, value) {
+      try {
+        const response = await fetch(`${this.config.apiUrl}/accept-offer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            interceptionId: this.interceptionId,
+            offerType: offerType,
+            shopDomain: this.config.shopDomain,
+            customerId: this.config.customerId,
+            customerEmail: this.config.customerEmail,
+            itemPrice: value,
+          }),
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          this.renderSuccess(data);
+        } else {
+          this.renderError();
+        }
+      } catch (error) {
+        console.error('[RefundSaviour] Error accepting offer:', error);
+        this.renderError();
+      }
+    },
+
+    renderSuccess(data) {
+      const content = document.getElementById('refund-saviour-content');
+      let message = '';
+
+      switch (data.outcome) {
+        case 'store_credit':
+          message = `🎉 Great choice! You've received $${data.result.amount} in store credit (code: ${data.result.giftCardCode}). Check your email for details!`;
+          break;
+        case 'exchange':
+          message = `📦 Perfect! Use code ${data.result.discountCode} for free shipping on your exchange. Happy shopping!`;
+          break;
+        case 'refund':
+          message = `✓ Understood. Redirecting you to complete your refund...`;
+          setTimeout(() => {
+            // Redirect to Shopify's refund flow
+            window.location.href = `/account/orders`;
+          }, 2000);
+          break;
+      }
+
+      content.innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+          <h2 style="margin-bottom: 16px;">All Set!</h2>
+          <p style="font-size: 16px; color: #666;">${message}</p>
+          <button 
+            onclick="RefundSaviour.close()" 
+            style="margin-top: 24px; padding: 12px 24px; background: ${this.config.primaryColor}; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;"
+          >
+            Close
+          </button>
+        </div>
+      `;
+    },
+
+    renderError() {
+      const content = document.getElementById('refund-saviour-content');
+      content.innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+          <h2 style="margin-bottom: 16px;">Oops!</h2>
+          <p style="font-size: 16px; color: #666;">Something went wrong. Please try again or contact support.</p>
+          <button 
+            onclick="RefundSaviour.close()" 
+            style="margin-top: 24px; padding: 12px 24px; background: #666; color: white; border: none; border-radius: 8px; cursor: pointer;"
+          >
+            Close
+          </button>
+        </div>
+      `;
+    },
+  };
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => RefundSaviour.init());
+  } else {
+    RefundSaviour.init();
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Refund Saviour Widget",
+  "target": "body",
+  "settings": [
+    {
+      "type": "text",
+      "id": "app_server_url",
+      "label": "App Server URL",
+      "info": "Your RefundSavior app URL (e.g. https://your-app.vercel.app). Required for the widget to work.",
+      "default": ""
+    },
+    {
+      "type": "text",
+      "id": "widget_title",
+      "label": "Widget Title",
+      "default": "Need to return something?"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_orders",
+      "label": "Show on Order History Page",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_trigger",
+      "label": "Auto-trigger on Return Button Click",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primary Color",
+      "default": "#6366f1"
+    }
+  ]
+}
+{% endschema %}

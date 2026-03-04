@@ -1,0 +1,33 @@
+api_version = "2024-10"
+name = "refund-saviour-widget"
+handle = "refund-saviour-widget"
+type = "theme"
+
+[[extensions.blocks]]
+name = "Refund Interception Widget"
+type = "refund_widget"
+target = "main"
+
+[[extensions.blocks.settings]]
+type = "text"
+id = "widget_title"
+label = "Widget Title"
+default = "Need to return something?"
+
+[[extensions.blocks.settings]]
+type = "checkbox"
+id = "show_on_orders"
+label = "Show on Order History Page"
+default = true
+
+[[extensions.blocks.settings]]
+type = "checkbox"
+id = "auto_trigger"
+label = "Auto-trigger on Return Button Click"
+default = true
+
+[[extensions.blocks.settings]]
+type = "color"
+id = "primary_color"
+label = "Primary Color"
+default = "#6366f1"

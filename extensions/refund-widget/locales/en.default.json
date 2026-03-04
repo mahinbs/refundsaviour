@@ -1,0 +1,15 @@
+{
+  "refund_widget": {
+    "title": "Need to return something?",
+    "subtitle": "Let's find the best solution for you",
+    "loading": "Loading...",
+    "close": "Close",
+    "error": "Something went wrong. Please try again.",
+    "escape_hatch": "Just give me my refund",
+    "success": {
+      "store_credit": "Great choice! Check your email for your store credit code.",
+      "exchange": "Perfect! Use your discount code for free exchange shipping.",
+      "refund": "Understood. Redirecting you to complete your refund..."
+    }
+  }
+}
