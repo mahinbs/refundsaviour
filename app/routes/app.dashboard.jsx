@@ -5,25 +5,41 @@ import { db } from "../supabase.server";
 import Dashboard from "../../src/pages/Dashboard";
 
 export async function loader({ request }) {
-  const { session } = await authenticate.admin(request);
-  const merchant = await db.getMerchantByShop(session.shop);
-  
-  if (!merchant) {
-    throw new Response("Merchant not found", { status: 404 });
+  // Try Shopify OAuth session first
+  let shopDomain = null;
+  try {
+    const { session } = await authenticate.admin(request);
+    shopDomain = session.shop;
+  } catch {
+    // No Shopify session — could be manual-key merchant or direct browser visit
   }
 
-  // Get dashboard stats
-  const stats = await db.getDashboardStats(merchant.id);
-  
-  // Get recent interceptions
-  const recentInterceptions = await db.getInterceptions(merchant.id, 10);
+  if (!shopDomain) {
+    // Return empty dashboard state — merchant needs to connect first
+    return json({
+      merchant: null,
+      stats: { totalInterceptions: 0, totalRetained: 0, totalRefunds: 0, totalRetentionValue: 0, retentionRate: 0 },
+      recentInterceptions: [],
+      shop: null,
+    });
+  }
 
-  return json({
-    merchant,
-    stats,
-    recentInterceptions,
-    shop: session.shop,
-  });
+  const merchant = await db.getMerchantByShop(shopDomain);
+  if (!merchant) {
+    return json({
+      merchant: null,
+      stats: { totalInterceptions: 0, totalRetained: 0, totalRefunds: 0, totalRetentionValue: 0, retentionRate: 0 },
+      recentInterceptions: [],
+      shop: shopDomain,
+    });
+  }
+
+  const [stats, recentInterceptions] = await Promise.all([
+    db.getDashboardStats(merchant.id),
+    db.getInterceptions(merchant.id, 10),
+  ]);
+
+  return json({ merchant, stats, recentInterceptions, shop: shopDomain });
 }
 
 export default function DashboardRoute() {

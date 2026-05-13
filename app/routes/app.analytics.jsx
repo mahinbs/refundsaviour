@@ -5,30 +5,34 @@ import { db } from "../supabase.server";
 import Analytics from "../../src/pages/Analytics";
 
 export async function loader({ request }) {
-  const { session } = await authenticate.admin(request);
-  const merchant = await db.getMerchantByShop(session.shop);
-  
-  if (!merchant) {
-    throw new Response("Merchant not found", { status: 404 });
+  let shopDomain = null;
+  try {
+    const { session } = await authenticate.admin(request);
+    shopDomain = session.shop;
+  } catch {
+    // No Shopify session — direct browser visit or manual merchant
   }
 
-  // Get analytics for last 30 days
+  if (!shopDomain) {
+    return json({ merchant: null, analytics: [], interceptions: [], shop: null });
+  }
+
+  const merchant = await db.getMerchantByShop(shopDomain);
+  if (!merchant) {
+    return json({ merchant: null, analytics: [], interceptions: [], shop: shopDomain });
+  }
+
   const endDate = new Date().toISOString().split("T")[0];
   const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split("T")[0];
-  
-  const analyticsData = await db.getAnalytics(merchant.id, startDate, endDate);
-  
-  // Get all interceptions for detailed breakdown
-  const allInterceptions = await db.getInterceptions(merchant.id, 1000);
 
-  return json({
-    merchant,
-    analytics: analyticsData,
-    interceptions: allInterceptions,
-    shop: session.shop,
-  });
+  const [analyticsData, allInterceptions] = await Promise.all([
+    db.getAnalytics(merchant.id, startDate, endDate),
+    db.getInterceptions(merchant.id, 1000),
+  ]);
+
+  return json({ merchant, analytics: analyticsData, interceptions: allInterceptions, shop: shopDomain });
 }
 
 export default function AnalyticsRoute() {
