@@ -131,7 +131,7 @@ export default function HomePage() {
               href="/auth/login"
               className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-bold text-black hover:bg-cyan-400 transition-colors shadow-[0_0_20px_rgba(6,182,212,0.3)]"
             >
-              Install Free
+              Get Started Free
             </a>
           </div>
         </div>
@@ -358,6 +358,7 @@ export default function HomePage() {
               <Link to="/legal/terms" className="hover:text-white transition-colors">Terms of Service</Link>
               <Link to="/legal/refund" className="hover:text-white transition-colors">Refund Policy</Link>
               <a href="mailto:support@refundsaviour.com" className="hover:text-white transition-colors">Contact</a>
+              <Link to="/super-admin/login" className="hover:text-white transition-colors text-slate-600">Admin</Link>
             </div>
           </div>
           <div className="mt-8 border-t border-white/5 pt-8 text-center text-xs text-slate-600">
