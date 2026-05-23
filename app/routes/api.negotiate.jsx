@@ -1,8 +1,25 @@
 import { json } from "@remix-run/node";
 import { db } from "../supabase.server";
 import { generateAIResponse, generateOfferMessage } from "../openai.server";
+import { canIntercept, PLANS } from "../paddle.server";
+
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+export async function loader({ request }) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+  return new Response(null, { status: 405 });
+}
 
 export async function action({ request }) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
   try {
     const body = await request.json();
     const {
@@ -23,13 +40,27 @@ export async function action({ request }) {
     // Get merchant settings — works for both OAuth and manual merchants
     const merchant = await db.getMerchantByShop(shopDomain);
     if (!merchant) {
-      return json({ error: "Merchant not found" }, { status: 404 });
+      return json({ error: "Merchant not found" }, { status: 404, headers: CORS_HEADERS });
     }
     if (!merchant.is_active) {
       return json(
         { error: "Store connection is inactive. The merchant needs to reconnect." },
-        { status: 403 }
+        { status: 403, headers: CORS_HEADERS }
       );
+    }
+
+    // Check monthly interception limit against the merchant's plan
+    if (!interceptionId) {
+      const limit = canIntercept(merchant);
+      if (typeof limit === "number") {
+        const monthlyCount = await db.getMonthlyInterceptionCount(merchant.id);
+        if (monthlyCount >= limit) {
+          return json(
+            { error: "Monthly interception limit reached. Please upgrade your plan.", limitReached: true },
+            { status: 402, headers: CORS_HEADERS }
+          );
+        }
+      }
     }
 
     // Create or update interception record
@@ -75,7 +106,7 @@ export async function action({ request }) {
         response: initialOffer.message,
         offers: initialOffer.offers,
         analysis: initialOffer.analysis,
-      });
+      }, { headers: CORS_HEADERS });
     }
 
     // Generate AI response for ongoing conversation
@@ -110,12 +141,12 @@ export async function action({ request }) {
       interceptionId: interception.id,
       response: aiResponse.content,
       tokensUsed: aiResponse.tokensUsed,
-    });
+    }, { headers: CORS_HEADERS });
   } catch (error) {
     console.error("Negotiate API error:", error);
     return json(
       { error: "Failed to process request", details: error.message },
-      { status: 500 }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 }

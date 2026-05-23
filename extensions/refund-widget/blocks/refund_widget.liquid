@@ -275,7 +275,7 @@
 
     async startConversation(orderId, orderData) {
       try {
-        const response = await fetch(`${this.config.apiUrl}/negotiate`, {
+        const response = await fetch(`${this.config.apiUrl}/api/negotiate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -283,7 +283,7 @@
             orderId: orderId,
             customerId: this.config.customerId,
             customerEmail: this.config.customerEmail,
-            returnReason: 'changed_mind', // Default, can be enhanced with a reason selector
+            returnReason: 'changed_mind',
             productId: orderData.productId || 'unknown',
             productName: orderData.productName,
             itemPrice: orderData.itemPrice,
@@ -291,12 +291,26 @@
           }),
         });
 
+        // Plan limit reached — silently close and let Shopify handle the refund.
+        // The customer never sees an error; the merchant just loses interception for this request.
+        if (response.status === 402) {
+          this.close();
+          return;
+        }
+
+        // Any other non-OK response — close silently too so customers aren't blocked.
+        if (!response.ok) {
+          this.close();
+          return;
+        }
+
         const data = await response.json();
         this.interceptionId = data.interceptionId;
         this.renderConversation(data);
       } catch (error) {
+        // Network error — never block the customer, just close.
         console.error('[RefundSaviour] Error starting conversation:', error);
-        this.renderError();
+        this.close();
       }
     },
 
@@ -346,7 +360,7 @@
 
     async acceptOffer(offerType, value) {
       try {
-        const response = await fetch(`${this.config.apiUrl}/accept-offer`, {
+        const response = await fetch(`${this.config.apiUrl}/api/accept-offer`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

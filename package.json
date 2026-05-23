@@ -6,14 +6,16 @@
   "scripts": {
     "dev": "remix vite:dev",
     "build": "remix vite:build",
-    "start": "remix-serve ./build/server/index.js",
+    "start": "remix-serve --port ${PORT:-3000} ./build/server/index.js",
     "lint": "eslint .",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "create-admin": "node scripts/create-admin.js"
   },
   "dependencies": {
     "@remix-run/node": "^2.15.3",
     "@remix-run/react": "^2.15.3",
     "@remix-run/serve": "^2.15.3",
+    "@paddle/paddle-node-sdk": "^1.7.0",
     "@shopify/shopify-api": "^12.3.0",
     "@shopify/shopify-app-remix": "^4.1.1",
     "@supabase/supabase-js": "^2.48.1",
@@ -21,6 +23,7 @@
     "clsx": "^2.1.1",
     "isbot": "^5.1.21",
     "lucide-react": "^0.563.0",
+    "bcryptjs": "^2.4.3",
     "openai": "^4.77.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

@@ -49,8 +49,6 @@ export default function Dashboard({ data }) {
                             title={kpi.title}
                             value={kpi.value}
                             icon={iconMap[kpi.title] || ShieldCheck}
-                            trend={kpi.trend}
-                            trendValue={kpi.change}
                             color={kpi.title.includes("Revenue") ? "success" : "default"}
                         />
                     );

@@ -2,7 +2,23 @@ import { json } from "@remix-run/node";
 import { db } from "../supabase.server";
 import { getCommerceClient, CommerceClientError } from "../commerce-client.server";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+export async function loader({ request }) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+  return new Response(null, { status: 405 });
+}
+
 export async function action({ request }) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
   try {
     const body = await request.json();
     const {
@@ -16,7 +32,7 @@ export async function action({ request }) {
     } = body;
 
     if (!shopDomain || !offerType || !interceptionId) {
-      return json({ error: "Missing required fields" }, { status: 400 });
+      return json({ error: "Missing required fields" }, { status: 400, headers: CORS_HEADERS });
     }
 
     let client;
@@ -24,7 +40,7 @@ export async function action({ request }) {
       client = await getCommerceClient(shopDomain);
     } catch (error) {
       if (error instanceof CommerceClientError) {
-        return json({ error: error.message, code: error.code }, { status: 403 });
+        return json({ error: error.message, code: error.code }, { status: 403, headers: CORS_HEADERS });
       }
       throw error;
     }
@@ -74,10 +90,10 @@ export async function action({ request }) {
           }
         } catch (error) {
           if (error instanceof CommerceClientError) {
-            return json({ error: error.message, code: error.code }, { status: 403 });
+            return json({ error: error.message, code: error.code }, { status: 403, headers: CORS_HEADERS });
           }
           console.error("Error creating gift card:", error);
-          return json({ error: "Failed to create store credit" }, { status: 500 });
+          return json({ error: "Failed to create store credit" }, { status: 500, headers: CORS_HEADERS });
         }
         break;
       }
@@ -114,10 +130,10 @@ export async function action({ request }) {
           }
         } catch (error) {
           if (error instanceof CommerceClientError) {
-            return json({ error: error.message, code: error.code }, { status: 403 });
+            return json({ error: error.message, code: error.code }, { status: 403, headers: CORS_HEADERS });
           }
           console.error("Error creating exchange discount:", error);
-          return json({ error: "Failed to create exchange offer" }, { status: 500 });
+          return json({ error: "Failed to create exchange offer" }, { status: 500, headers: CORS_HEADERS });
         }
         break;
       }
@@ -134,15 +150,15 @@ export async function action({ request }) {
       }
 
       default:
-        return json({ error: "Invalid offer type" }, { status: 400 });
+        return json({ error: "Invalid offer type" }, { status: 400, headers: CORS_HEADERS });
     }
 
-    return json({ success: true, outcome, result, interceptionId });
+    return json({ success: true, outcome, result, interceptionId }, { headers: CORS_HEADERS });
   } catch (error) {
     console.error("Accept offer error:", error);
     return json(
       { error: "Failed to process offer", details: error.message },
-      { status: 500 }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 }

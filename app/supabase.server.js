@@ -76,9 +76,36 @@ export const db = {
       .eq("shop_domain", shopDomain)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
+  },
+
+  async updatePaddleSubscription(shopDomain, fields) {
+    const { data, error } = await supabase
+      .from("merchants")
+      .update(fields)
+      .eq("shop_domain", shopDomain)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getMonthlyInterceptionCount(merchantId) {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count, error } = await supabase
+      .from("interceptions")
+      .select("id", { count: "exact", head: true })
+      .eq("merchant_id", merchantId)
+      .gte("created_at", startOfMonth.toISOString());
+
+    if (error) throw error;
+    return count ?? 0;
   },
 
   async deactivateMerchant(shopDomain) {

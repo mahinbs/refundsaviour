@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   BarChart3,
   Settings,
+  CreditCard,
   Hexagon,
   ExternalLink,
   Menu,
@@ -20,6 +21,7 @@ function Sidebar({ className, onNavigate }) {
     { label: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
     { label: "Analytics", href: "/app/analytics", icon: BarChart3 },
     { label: "Settings", href: "/app/settings", icon: Settings },
+    { label: "Billing", href: "/app/billing", icon: CreditCard },
   ];
 
   return (
@@ -112,6 +114,7 @@ export default function AppLayout() {
       case "/app/dashboard": return "Command Center";
       case "/app/analytics": return "Data Analytics";
       case "/app/settings": return "System Settings";
+      case "/app/billing": return "Billing & Plan";
       default: return "Dashboard";
     }
   };
