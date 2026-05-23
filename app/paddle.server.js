@@ -1,4 +1,5 @@
 import { Paddle, Environment } from "@paddle/paddle-node-sdk";
+import { PLANS as BASE_PLANS } from "./plans.js";
 
 const paddle = new Paddle(process.env.PADDLE_API_KEY || "", {
   environment:
@@ -9,48 +10,11 @@ const paddle = new Paddle(process.env.PADDLE_API_KEY || "", {
 
 export { paddle };
 
-// ── Plans ────────────────────────────────────────────────────────────────────
-
+// Inject env-based priceIds at server runtime
 export const PLANS = {
-  free: {
-    name: "Free",
-    price: "$0",
-    priceId: null,
-    interceptionLimit: 10,
-    features: [
-      "10 interceptions / month",
-      "Basic AI responses",
-      "Store credit offers",
-      "Email support",
-    ],
-  },
-  starter: {
-    name: "Starter",
-    price: "$29/mo",
-    priceId: process.env.PADDLE_PRICE_ID_STARTER,
-    interceptionLimit: 200,
-    features: [
-      "200 interceptions / month",
-      "Full AI negotiation",
-      "Store credit & exchanges",
-      "Dashboard & analytics",
-      "Email support",
-    ],
-  },
-  pro: {
-    name: "Pro",
-    price: "$79/mo",
-    priceId: process.env.PADDLE_PRICE_ID_PRO,
-    interceptionLimit: null, // unlimited
-    features: [
-      "Unlimited interceptions",
-      "Advanced AI tones",
-      "Custom AI prompts",
-      "Priority support",
-      "Advanced analytics",
-      "Multi-store support",
-    ],
-  },
+  ...BASE_PLANS,
+  starter: { ...BASE_PLANS.starter, priceId: process.env.PADDLE_PRICE_ID_STARTER },
+  pro: { ...BASE_PLANS.pro, priceId: process.env.PADDLE_PRICE_ID_PRO },
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

@@ -2,11 +2,7 @@ import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 import { db } from "../supabase.server";
-import {
-  PLANS,
-  getOrCreatePaddleCustomer,
-  getPortalUrl,
-} from "../paddle.server";
+import { PLANS } from "../plans.js";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -22,6 +18,7 @@ export async function loader({ request }) {
   let portalUrl = null;
   if (merchant.paddle_customer_id) {
     try {
+      const { getPortalUrl } = await import("../paddle.server.js");
       portalUrl = await getPortalUrl(merchant.paddle_customer_id);
     } catch {
       // Non-fatal — portal link just won't show

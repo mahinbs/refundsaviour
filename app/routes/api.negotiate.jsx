@@ -1,7 +1,6 @@
 import { json } from "@remix-run/node";
 import { db } from "../supabase.server";
 import { generateAIResponse, generateOfferMessage } from "../openai.server";
-import { canIntercept, PLANS } from "../paddle.server";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -51,6 +50,7 @@ export async function action({ request }) {
 
     // Check monthly interception limit against the merchant's plan
     if (!interceptionId) {
+      const { canIntercept } = await import("../paddle.server.js");
       const limit = canIntercept(merchant);
       if (typeof limit === "number") {
         const monthlyCount = await db.getMonthlyInterceptionCount(merchant.id);
